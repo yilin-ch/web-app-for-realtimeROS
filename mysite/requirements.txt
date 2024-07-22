@@ -1,0 +1,10 @@
+Django==4.0
+djangorestframework
+channels
+channels_redis
+pymongo
+pandas
+websocket-client
+websockets
+django-cors-headers
+daphne
