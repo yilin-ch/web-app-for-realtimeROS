@@ -19,22 +19,6 @@ services:
       - OPENSIM_ROS_HOST=opensimrt_ros_
       - OPENSIM_ROS_PORT=9090
 
-  frontend:
-    build:
-      context: ./frontend
-    container_name: react-frontend
-    volumes:
-      - ./frontend:/app
-      - node_modules:/app/newfolder
-    ports:
-      - "4000:4000"
-    networks:
-      - shared-network
-    environment:
-      - DJANGO_HOST=django-backend
-      - DJANGO_PORT=8000
-      - CHOKIDAR_USEPOLLING=true
-
   redis:
     image: redis:latest
     container_name: redis
@@ -43,10 +27,24 @@ services:
     networks:
       - shared-network
 
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - shared-network
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: myuser
+      MONGO_INITDB_ROOT_PASSWORD: mypassword
+    volumes:
+      - mongo_data:/data/db
+
 networks:
   shared-network:
 
 volumes:
   node_modules: {}
+  mongo_data:
 
 

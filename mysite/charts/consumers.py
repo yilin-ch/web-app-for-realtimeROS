@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class BridgeConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         logger.info("connecting to rosbridge")
-        self.ros_bridge = await websockets.connect('ws://172.18.0.4:9090')
+        self.ros_bridge = await websockets.connect('ws://172.20.0.5:9090')
         await self.ros_bridge.send(json.dumps({
             "op": "subscribe",
             "topic": "/sensor_data"

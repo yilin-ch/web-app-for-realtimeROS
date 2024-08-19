@@ -13,6 +13,10 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import asyncio
 import websockets
+import os
+
+# MongoDB URI from environment variable
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb://myuser:mypassword@mongodb:27017/')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +32,7 @@ def test_redis_connection(request):
 # Test ros-bridge connection
 async def test_ros_bridge_publish(request):
     try:
-        async with websockets.connect('ws://172.18.0.4:9090') as websocket:
+        async with websockets.connect('ws://172.20.0.5:9090') as websocket:
             await websocket.send(json.dumps({
                 "op": "publish",
                 "topic": "/test_topic",
@@ -100,12 +104,13 @@ def publish_topic(request):
     if serializer.is_valid():
         topic = serializer.validated_data['topic']
         message = serializer.validated_data['message']
+        branch = serializer.validated_data['branchValue']
 
-        logger.info("Valid data received - Topic: %s, Message: %s", topic, message)
+        logger.info("Valid data received - Topic: %s, Message: %s, branch: %s", topic, message, branch)
 
         try:
             # Connect to rosbridge websocket server
-            ws = create_connection("ws://localhost:9090/")
+            ws = create_connection("ws://172.20.0.5:9090/")
             logger.info("Connected to rosbridge websocket server")
        
             # Create the ROS message in JSON format
@@ -113,7 +118,7 @@ def publish_topic(request):
                 "op": "publish",
                 "topic": "/flexbe/command/transition",
                 "msg": {
-                    "outcome": 0,
+                    "outcome": branch,
                     "target": message
                 }
             }
