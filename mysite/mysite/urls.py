@@ -20,7 +20,7 @@ from charts.views import publish_topic, get_filenames, get_file_data, test_redis
 
 urlpatterns = [
     path('test-redis/', test_redis_connection),
-    path('test-ros-brdige/', test_ros_bridge_publish),
+    path('test-ros-bridge/', test_ros_bridge_publish),
     path('get_filenames/', get_filenames, name='get_filenames'),
     path('get_file_data/<str:filename>/', get_file_data, name='get_file_data'), 
     # path('admin/', admin.site.urls),
