@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from charts.views import publish_topic, get_filenames, get_file_data, test_redis_connection, test_ros_bridge_publish
+from charts.views import publish_topic, get_filenames, get_file_data, test_redis_connection, test_ros_bridge_publish, set_name_and_path
 
 urlpatterns = [
     path('test-redis/', test_redis_connection),
@@ -25,4 +25,5 @@ urlpatterns = [
     path('get_file_data/<str:filename>/', get_file_data, name='get_file_data'), 
     # path('admin/', admin.site.urls),
     path('publish/', publish_topic, name='publish_topic'),
+    path('set_name_and_path/', set_name_and_path, name='set_name_and_path'),
 ]
