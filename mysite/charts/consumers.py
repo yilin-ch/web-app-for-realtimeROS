@@ -54,4 +54,40 @@ class BridgeConsumer(AsyncWebsocketConsumer):
 
             await self.send(text_data=json.dumps(data))
 
+# class for subscribing to ROS logs
+class LogConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        # Accept the WebSocket connection
+        await self.accept()
+
+        # Subscribe to the ROS /flexbe/log topic using rosbridge
+        self.rosbridge_ws = await websockets.connect("ws://172.18.0.5:9090/")
+        await self.rosbridge_ws.send(json.dumps({
+            "op": "subscribe",
+            "topic": "/flexbe/log"
+        }))
+
+        # Start receiving logs
+        self.receive_task = asyncio.create_task(self.receive_ros_logs())
+
+    async def receive_ros_logs(self):
+        try:
+            while True:
+                # Receive log messages from ROS through rosbridge
+                log_message = await self.rosbridge_ws.recv()
+                log_data = json.loads(log_message)
+                logger.info("Logs:%s", log_data)
+                # Send the log message to the WebSocket client
+                await self.send(text_data=json.dumps({
+                    'log': log_data
+                }))
+        except websockets.ConnectionClosed:
+            # Handle WebSocket disconnection
+            await self.close()
+
+    async def disconnect(self, close_code):
+        # Close the WebSocket and the rosbridge connection
+        if self.rosbridge_ws:
+            await self.rosbridge_ws.close()
+        await self.close()
 

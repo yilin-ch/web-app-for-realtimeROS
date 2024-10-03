@@ -15,6 +15,8 @@ import asyncio
 import websockets
 import os
 
+import time
+
 # MongoDB URI from environment variable
 MONGO_URI = os.getenv('MONGO_URI', 'mongodb://myuser:mypassword@mongodb:27017/')
 
@@ -242,7 +244,3 @@ def set_name_and_path(request):
     except Exception as e:
         logger.error("Failed to send message to rosbridge: %s", str(e))
         return JsonResponse({"error": "Failed to connect to rosbridge"}, status=500)
-
-
-
-

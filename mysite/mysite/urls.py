@@ -26,4 +26,5 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     path('publish/', publish_topic, name='publish_topic'),
     path('set_name_and_path/', set_name_and_path, name='set_name_and_path'),
+    # path('subscribe_behavior_logs/', subscribe_behavior_logs, name='subscribe_behavior_logs')
 ]
