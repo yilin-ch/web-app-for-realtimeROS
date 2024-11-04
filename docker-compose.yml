@@ -8,7 +8,7 @@ services:
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "mysite.asgi:application"]
     volumes:
       - ./mysite:/app
-      - /home/yilin/softdev/docker-opensimrt/Data/tmp0:/app/data  # Mount the host directory to /app/data inside the container
+      - /home/yilin/softdev/docker-opensimrt/Data:/app/data  # Mount the host directory to /app/data inside the container
     ports:
       - "8000:8000"
     networks:

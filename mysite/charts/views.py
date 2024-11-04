@@ -17,11 +17,14 @@ import os
 
 import time
 
+# Directory path for project folders
+PROJECTS_DIRECTORY = '/app/data/Projects'
+
 # MongoDB URI from environment variable
 MONGO_URI = os.getenv('MONGO_URI', 'mongodb://myuser:mypassword@mongodb:27017/')
 
 # Define the directory path inside the container
-DEFAULT_DIRECTORY = '/app/data/'
+DEFAULT_DIRECTORY = '/app/data/tmp0'
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -49,6 +52,172 @@ async def test_ros_bridge_publish(request):
             return JsonResponse({"status": "success", "message": response})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)})
+    
+
+# Ensure that the directory exists
+if not os.path.exists(PROJECTS_DIRECTORY):
+    os.makedirs(PROJECTS_DIRECTORY)
+
+@api_view(['GET'])
+def list_projects(request):
+    """
+    Lists all project directories in the PROJECTS_DIRECTORY.
+    """
+    try:
+        # Get list of all directories in the PROJECTS_DIRECTORY
+        projects = [d for d in os.listdir(PROJECTS_DIRECTORY) if os.path.isdir(os.path.join(PROJECTS_DIRECTORY, d))]
+        return JsonResponse({"projects": projects}, status=200)
+    except Exception as e:
+        logger.error("Error listing project directories: %s", str(e))
+        return JsonResponse({"error": "Could not retrieve projects."}, status=500)
+
+@api_view(['POST'])
+def create_project(request):
+    """
+    Creates a new project directory in the PROJECTS_DIRECTORY.
+    """
+    project_name = request.data.get("project_name")
+
+    # Validate the project name
+    if not project_name:
+        return JsonResponse({"error": "Project name is required."}, status=400)
+
+    project_path = os.path.join(PROJECTS_DIRECTORY, project_name)
+
+    # Check if project directory already exists
+    if os.path.exists(project_path):
+        return JsonResponse({"error": "Project already exists."}, status=400)
+
+    try:
+        # Create a new directory for the project
+        os.makedirs(project_path)
+        logger.info("Created new project directory: %s", project_path)
+        return JsonResponse({"status": "success", "project_name": project_name}, status=201)
+    except Exception as e:
+        logger.error("Error creating project directory: %s", str(e))
+        return JsonResponse({"error": "Could not create project."}, status=500)
+    
+@api_view(['GET'])
+def list_subjects(request, project_name):
+    """
+    Lists all subjects (folders) within a project.
+    """
+    project_path = os.path.join(PROJECTS_DIRECTORY, project_name)
+    
+    if not os.path.exists(project_path):
+        return JsonResponse({"error": "Project not found"}, status=404)
+    
+    subjects = [d for d in os.listdir(project_path) if os.path.isdir(os.path.join(project_path, d))]
+    return JsonResponse({"subjects": subjects}, status=200)
+
+@api_view(['POST'])
+def create_subject(request, project_name):
+    """
+    Creates a new subject folder and saves subject info in a JSON file.
+    """
+    subject_id = request.data.get("subject_id")
+    weight = request.data.get("weight")
+    height = request.data.get("height")
+    
+    if not subject_id or not weight or not height:
+        return JsonResponse({"error": "Subject ID, weight, and height are required"}, status=400)
+
+    subject_path = os.path.join(PROJECTS_DIRECTORY, project_name, subject_id)
+    
+    if os.path.exists(subject_path):
+        return JsonResponse({"error": "Subject already exists"}, status=400)
+
+    try:
+        # Create the subject folder
+        os.makedirs(subject_path)
+        
+        # Save subject info in a JSON file
+        subject_info = {
+            "subject_id": subject_id,
+            "weight": weight,
+            "height": height
+        }
+        json_path = os.path.join(subject_path, "subject_info.json")
+        with open(json_path, 'w') as json_file:
+            json.dump(subject_info, json_file)
+        
+        return JsonResponse({"status": "success", "subject_id": subject_id}, status=201)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+@api_view(['GET'])
+def list_sessions(request, project_name, subject_id):
+    """
+    Lists all sessions (folders) within a subject.
+    """
+    subject_path = os.path.join(PROJECTS_DIRECTORY, project_name, subject_id)
+    
+    if not os.path.exists(subject_path):
+        return JsonResponse({"error": "Subject not found"}, status=404)
+    
+    sessions = [d for d in os.listdir(subject_path) if os.path.isdir(os.path.join(subject_path, d))]
+    return JsonResponse({"sessions": sessions}, status=200)
+
+@api_view(['POST'])
+def create_session(request, project_name, subject_id):
+    """
+    Creates a new session folder within a subject.
+    """
+    session_name = request.data.get("session_name")
+
+    if not session_name:
+        return JsonResponse({"error": "Session name is required"}, status=400)
+
+    session_path = os.path.join(PROJECTS_DIRECTORY, project_name, subject_id, session_name)
+    
+    if os.path.exists(session_path):
+        return JsonResponse({"error": "Session already exists"}, status=400)
+
+    try:
+        # Create the session folder
+        os.makedirs(session_path)
+        return JsonResponse({"status": "success", "session_name": session_name}, status=201)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+@api_view(['GET'])
+def list_datafiles(request, project_name, subject_id, session_name):
+    """
+    Lists all datafiles (folders) within a session.
+    """
+    session_path = os.path.join(PROJECTS_DIRECTORY, project_name, subject_id, session_name)
+    
+    if not os.path.exists(session_path):
+        return JsonResponse({"error": "Session not found"}, status=404)
+    
+    datafiles = [d for d in os.listdir(session_path) if os.path.isdir(os.path.join(session_path, d))]
+    return JsonResponse({"datafiles": datafiles}, status=200)
+
+@api_view(['POST'])
+def create_datafile(request, project_name, subject_id, session_name):
+    """
+    Creates a new datafile folder within a session.
+    """
+    datafile_name = request.data.get("datafile_name")
+    
+    if not datafile_name:
+        return JsonResponse({"error": "Datafile name is required"}, status=400)
+
+    datafile_path = os.path.join(PROJECTS_DIRECTORY, project_name, subject_id, session_name, datafile_name)
+    
+    if os.path.exists(datafile_path):
+        return JsonResponse({"error": "Datafile already exists"}, status=400)
+
+    try:
+        # Create the datafile folder
+        os.makedirs(datafile_path)
+        return JsonResponse({"status": "success", "datafile_name": datafile_name}, status=201)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 
 # Function to list filenames in the local directory
 @api_view(['GET'])
@@ -214,10 +383,20 @@ def set_name_and_path(request):
     # Extract filename and filepath from the request data
     filename = request.data.get('filename')
     filepath = request.data.get('filepath')
+    relativepath = request.data.get('relativePath')
 
     # Validate inputs
     if not filename or not filepath:
         return JsonResponse({"error": "Filename and filepath are required"}, status=400)
+    
+    newpath = os.path.join(PROJECTS_DIRECTORY, str(relativepath))
+
+    try:
+        os.makedirs(newpath, exist_ok=True)  # Creates the directory if it doesn't exist
+        logger.info("Directory checked/created: %s", newpath)
+    except Exception as e:
+        logger.error("Failed to create directory: %s", str(e))
+        return JsonResponse({"error": "Failed to create directory"}, status=500)
 
     try:
         # Connect to rosbridge websocket server
