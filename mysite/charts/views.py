@@ -11,6 +11,7 @@ from io import StringIO
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from django.conf import settings
 import asyncio
 import websockets
 import os
@@ -40,7 +41,7 @@ def test_redis_connection(request):
 # Test ros-bridge connection
 async def test_ros_bridge_publish(request):
     try:
-        async with websockets.connect('ws://172.18.0.5:9090') as websocket:
+        async with websockets.connect(settings.ROSBRIDGE_WS_URL) as websocket:
             await websocket.send(json.dumps({
                 "op": "publish",
                 "topic": "/test_topic",
@@ -348,7 +349,7 @@ def publish_topic(request):
 
         try:
             # Connect to rosbridge websocket server
-            ws = create_connection("ws://172.18.0.5:9090/")
+            ws = create_connection(settings.ROSBRIDGE_WS_URL)
             logger.info("Connected to rosbridge websocket server")
        
             # Create the ROS message in JSON format
@@ -400,7 +401,7 @@ def set_name_and_path(request):
 
     try:
         # Connect to rosbridge websocket server
-        ws = create_connection("ws://172.18.0.5:9090/")
+        ws = create_connection(settings.ROSBRIDGE_WS_URL)
         logger.info("Connected to rosbridge websocket server")
        
         # Create the ROS service call message in JSON format

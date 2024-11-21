@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,6 +30,8 @@ DEBUG = False
 ALLOWED_HOSTS = ['*']
 
 MONGO_URIMONGO_URI = os.getenv('MONGO_URI', 'mongodb://myuser:mypassword@mongodb:27017/')
+
+ROSBRIDGE_WS_URL = config('ROSBRIDGE_WS_URL', default='ws://localhost:9090')
 
 # Application definition
 

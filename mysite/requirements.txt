@@ -8,3 +8,4 @@ websocket-client
 websockets
 django-cors-headers
 daphne
+python-decouple
